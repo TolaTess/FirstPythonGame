@@ -27,7 +27,19 @@ enemyImg = pygame.image.load('monster.png')
 enemyX = random.randint(0, 800)
 enemyY = random.randint(50, 150)
 enemyX_change = 5
-enemyY_change = 30
+enemyY_change = 25
+
+# Bullet
+# Ready - can't see the bullet on the screen
+# Fire - The bullet is currently moving
+bulletImg = pygame.image.load('bullet.png')
+bulletX = 0
+# bullet states at the tip of player's Y axis
+bulletY = 480
+bulletX_change = 0
+bulletY_change = 20
+bullet_state = "ready"
+
 
 def Player(x, y):
     # blit - to draw
@@ -35,6 +47,12 @@ def Player(x, y):
 
 def Enemy(x, y):
     screen.blit(enemyImg, (x, y))
+
+def Fire_Bullet(x, y):
+    global bullet_state
+    bullet_state = "fire"
+    # x + 16, y + 10 -> centers the bullet to the center of the player image
+    screen.blit(bulletImg, (x + 16, y + 10))
 
 # Game Loop
 running = True
@@ -53,6 +71,10 @@ while running:
                 playerX_change = -7
             if event.key == pygame.K_RIGHT:
                 playerX_change = 7
+            if event.key == pygame.K_SPACE:
+                if bullet_state is "ready":
+                    bulletX = playerX
+                    Fire_Bullet(bulletX, bulletY)
                 # If key released then stop player.
         if event.type == pygame.KEYUP:
             if event.key == pygame.K_LEFT or event.key == pygame.K_RIGHT:
@@ -60,22 +82,29 @@ while running:
 
     # Checking that player does not go out of bounds
     playerX += playerX_change
-
     if playerX <= 0:
         playerX = 0
-        #800 - 64 for the image size
+        #800 - 64 for the boundary size = 736
     elif playerX >= 736:
         playerX = 736
 
     # Enemy movement
     enemyX += enemyX_change
-
     if enemyX <= 0:
         enemyX_change = 5
         enemyY += enemyY_change
     elif enemyX >= 736:
         enemyX_change = -5
         enemyY += enemyY_change
+
+    # Bullet movement
+    if bulletY <= 40:
+        bulletY = 480
+        bullet_state = "ready"
+
+    if bullet_state is "fire":
+        Fire_Bullet(bulletX, bulletY)
+        bulletY -= bulletY_change
 
     Player(playerX, playerY) # will always show on the screen as in the while loop
     Enemy(enemyX, enemyY)
