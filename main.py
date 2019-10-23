@@ -1,6 +1,7 @@
 import pygame
 import random
 import math
+from pygame import mixer
 
 # Intialise the pygame - NB
 pygame.init()
@@ -10,6 +11,10 @@ screen = pygame.display.set_mode((800, 600))
 
 # Background
 background = pygame.image.load('background.jpg')
+
+# Background music
+mixer.music.load('firstsong.wav')
+mixer.music.play(-1)
 
 # Title and Icon
 pygame.display.set_caption("Space Invaders")
@@ -35,7 +40,7 @@ for i in range(num_of_enemies):
     # Random respawning
     enemyX.append(random.randint(0, 735))
     enemyY.append(random.randint(50, 150))
-    enemyX_change.append(4)
+    enemyX_change.append(4.5)
     enemyY_change.append(25)
 
 # Bullet
@@ -55,11 +60,19 @@ font = pygame.font.Font('freesansbold.ttf', 50)
 textX = 10
 textY = 10
 
+# Game Over text
+over_font = pygame.font.Font('freesansbold.ttf', 64)
+
 
 def ShowScore(x, y):
     # render text on screen first, then blit
     score = font.render("Score: " + str(score_value), True, (255, 255, 255))
     screen.blit(score, (x, y))
+
+
+def game_over_text():
+    over_text = over_font.render("Game Over: ", True, (255, 255, 255))
+    screen.blit(over_text, (200, 250))
 
 
 def Player(x, y):
@@ -106,6 +119,8 @@ while running:
                 playerX_change = 8
             if event.key == pygame.K_SPACE:
                 if bullet_state is "ready":
+                    bullet_Sound = mixer.Sound('laser_fire_1.wav')
+                    bullet_Sound.play()
                     # Get the current x cooridnates of the spaceship
                     bulletX = playerX
                     Fire_Bullet(bulletX, bulletY)
@@ -124,17 +139,27 @@ while running:
 
     # Enemy movement
     for i in range(num_of_enemies):
+        # Game Over
+        if enemyY[i] > 440:
+            for j in range(num_of_enemies):
+                # move all enemies out of the screen
+                enemyY[j] = 2000
+            game_over_text()
+            break
+
         enemyX[i] += enemyX_change[i]
         if enemyX[i] <= 0:
-            enemyX_change[i] = 4
+            enemyX_change[i] = 4.5
             enemyY[i] += enemyY_change[i]
         elif enemyX[i] >= 736:
-            enemyX_change[i] = -4
+            enemyX_change[i] = -4.5
             enemyY[i] += enemyY_change[i]
 
         # Collision
         collision = isCollision(enemyX[i], enemyY[i], bulletX, bulletY)
         if collision:
+            explosion_Sound = mixer.Sound('explosion.wav')
+            explosion_Sound.play()
             bulletY = 480
             bullet_state = "ready"
             score_value += 1
